@@ -5,13 +5,15 @@
 丁南
 更新于 2019-05-28
 
-[上一篇](www.placeholder.com) 我们聊了对话管理的 handcrafted 和 data-driven 方法，本文从项目实施的角度讨论一下 data-driven 应用的困难，以及两种方法不同的适用场景。下图深色节点是本文的思维导图。
+[上一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/任务型对话管理的实践/任务型对话管理的产品实践 - 1 实现方法的回顾.md) 我们聊了对话管理的 handcrafted 和 data-driven 方法，本文从项目实施的角度讨论一下 data-driven 应用的困难，以及两种方法不同的适用场景。下图深色节点是本文的思维导图。
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p1.png" width="1024">
 
-图 1 本文思维导图
+*图 1 本文思维导图*
 
-#### 对话管理所依赖的语料问题
+
+
+### 对话管理所依赖的语料问题
 
 首先，实现「基于数据」的方法前提肯定是需要大量标注数据的，开发者在准备标注语料时通常会面临：标注难度高，数量要求多，数据质量低，以及语料来源有限等问题。
 
@@ -22,6 +24,8 @@
 再者，企业并没有那么多专业的领域专家来做语料标注，非专业的数据标注质量也影响着机器学习方法的有效性。通常在开发对话项目的过程中，领域专家设计对话逻辑、完成对话描述、定义用户意图和 dialog act 等信息。项目的 deadline 一般不会允许他/她来做数据标注，这部分工作一般由专门的标注团队来辅助，甚至外包给第三方。但标注团队毕竟不是领域专家，对任务理解不当会导致出现很多标注错误。由于对话系统依赖的语料数量太大，要想快速扩充数据通常会实施多人标注，不同人对项目理解不一致会进一步加重数据质量的问题。
 
 最后，开发者在做数据准备时还会遇到数据来源匮乏的问题。这恐怕是最严重的问题，因为真实世界的语料分布几乎决定了机器人上线后的泛化能力。而现实情况是，企业在项目冷启动时往往并没有人机对话数据，手头上可能只有任务描述书，好一点儿的可能会有同领域的人人语料（human-human dialogs），但这些都不足以覆盖整个人机对话真实场景。
+
+
 
 #### 现实情况一：已有人机对话语料
 
@@ -37,7 +41,7 @@
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p2.png" width="480">
 
-图 2 标注错误 filtering 处理流程 [[3]](#reference)
+*图 2 标注错误 filtering 处理流程 [[3]](#reference)*
 
 另一方面，提高标注质量还可以从工具和流程层面入手。一般数据录入（data-entry）错误很多是标注同学的无心之举，毕竟标注任务繁重，不可能 100% 集中注意力，这就对标注工具的产品设计提出了很高的要求。标注工具应尽可能的自动化标注操作，让 annotators 尽可能地只做简单的决策。例如用标签选项代替人工输入，以便排除输入错误的可能性。或者推荐最佳预测标签，annotators 只需做判断题，降低决策成本。数据准备期通常占一个机器学习项目一半以上的时间，优秀的标注工具的重要性是不言而喻的，我们从优秀的产品中学到了很多经验，特别推荐大家使用 [Dataturks](https://dataturks.com/index.php)、[LightTag](https://www.lighttag.io/) 和 [tagtog](https://www.tagtog.net/)。
 
@@ -45,7 +49,7 @@
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p3.png" width="640">
 
-图 3 Partition-Map-Reduce 标注框架及示例 [[7]](#reference)
+*图 3 Partition-Map-Reduce 标注框架及示例 [[7]*](#reference)
 
 
 
@@ -57,20 +61,19 @@
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p4.png" width="480">
 
-图 4 Dialog interactive learning  [[10]](#reference)
+*图 4 Dialog interactive learning  [[10]*](#reference)
 
 自造数据最大的问题是扩展速度太慢，覆盖场景太有限。虽然有种子用户的测试，但测试范围太窄，必须不断迭代扩大种子用户，小心翼翼的反复测试。而如果在场景覆盖不完备的情况下将系统暴露给用户，会立即变成战五渣。所以自造数据往往并不满足统计方法对语料量的要求。为了解决这个问题，研究者提出可以使用 user simulator 模拟人机对话，让机器自动生成对话交互语料。User simulator 是一个很大的话题，也一直是对话系统的研究热点。早期的方法很直接，用 action bi-gram model $P(a_u | a_m)$ 根据系统上一个 machine action 预测下一个 user action [[12]](#reference)。这种方法弊端很明显，它仅仅依赖系统的上一个 action，并且也没有考虑诸如 user profile、user goal 等特征，产生的会话一致性会很差。后来 Schatzmann 提出一种很适合任务型对话的 agenda-based user simulator [[13]](#reference)，这个方法借鉴了类似 goal-based 方法，用一个 stack 结构来维护将要进行的 user action，这个数据结构称为 agenda（图 5）。和机器交互后 simulator 会更新 agenda 中的 future user actions，例如 pop 或 push 新的 user action 到 agenda 中。由于 agenda 隐含了用户目标，会话目的始终是完成对话任务，所以这样生成的对话有很好的一致性。这几年 sequence-to-sequence 方法很火，也有学者将其应用到 user simulator 中 [[14]](#reference)，将 machine context 到 user action 看做一个 source-to-target 序列生成问题，由于可控性不高，这种方法应用在任务型的对话系统还不常见 [[15]](#reference)。
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p5.png" width="360">
 
-图 5 Sample dialog and agenda sequence [[1]](#reference)
+*图 5 Sample dialog and agenda sequence [[1]](#reference)*
 
 自造语料可以解决数据从 0 到 1 的问题，对话模拟器可以解决从 1 到 10000 的问题，但这两个方式都不能解决数据来源的问题。企业自造语料时找到的测试用户通常是公司内的同事，他们很可能已经对测试流程和对话场景非常熟悉了，这样产出的语料往往会拟合于已有的对话逻辑。并且种子用户的身份和企业的真实用户可能差距很大，例如理财公司的用户是有真实理财需求的，如果种子用户并没有理财经验，他们无法完全模拟真实用户使用对话系统的情况。一种解决办法是用灰度发布，通过接入小范围的真实用户，检验系统响应质量，收集真实世界的数据。这个方法很普遍也很有效，但有几个限制条件，一是企业已经有一个效果还算 ok 的对话系统，例如先做一个基于规则的 DM 跑灰度测试；二是对话任务涉及的业务可以容忍一定程度上的错误率。但如果涉及的业务非常重要，企业需要让对话失败的风险尽可能可控，这样就很难说服业务负责人把未经真实验证的对话系统跑上线，甚至是灰度环境。我们在做一款语音机器人的业务时，就遇到了类似的场景。这时另外一种解决办法可以缓解这个问题，学界一般称为 Wizard of Oz（WOz），一种非常有名的对话数据收集方法 [[16]](#reference)。WOz 简单来说是通过让人模拟机器的行为，来服务真实用户，收集真实的用户语料。在对话系统开发中，一般也是采用迭代开发，不同模块的完成时间并不一样，不同模块的研发成熟度也不一样，为了尽快推出一个原型，开发者可以选择将某些模块 mock 掉。但这里的 mock 并不是敏捷开发的 mock，而是用业务专家（wizard）在系统运行时代替这个模块，根据这个模块的输入，wizard 给出模块合理化的输出。值得注意的是，wizard 在模仿模块的行为时不能超出这个模块的设计边界，即不能用他自己的先验知识做超出模块能力范围的行为，否则会导致产生的对话并不符合对话系统的真实场景，拉低数据的可用性 [[17]](#reference)。WOz 的方法能让系统在成熟之前就接触到真实用户，快速收集真实世界的数据分布，降低了上线后泛化的风险。同时也让企业提前检验对话流程的有效性，及时对问题做出调整。
 
 
 
-
-#### Trade-off of control and automation
+### Trade-off of control and automation
 
 从大量语料中自动学习人机对话交互模式，是企业开发对话系统的理想方式。在从事了很多个对话项目之后，我们发现企业对任务型机器人有很多现实的需求，而目前基于数据的方法都很难满足。除了数据获取的困难，data-driven 方法遇到的另一个很大的问题是：自动化和控制权的权衡（control and automation）[[18]](#reference)。自动化的 DM 方法往往是以牺牲对 VUI 逻辑的控制为代价的。我们知道机器学习对非专家来说是一个黑盒，虽然知道模型归纳的依据来自于语料，但如何用语料来解释模型的行为、如何通过变更语料来快速修改模型的结果、如何精确的对模型逻辑进行设计，这些能方便控制对话行为的权限是企业开发对话项目时必需的，而基于统计的方法并不能完全支持。
 
@@ -82,37 +85,37 @@
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p6.png" width="800">
 
-图 6 Hybrid Code Network 系统架构图 [[2]](#reference)
+*图 6 Hybrid Code Network 系统架构图 [[2]](#reference)*
 
 以上我们讨论了很多关于如何设计对话模型和策略的话题，但此时系统仅是一个开环（open-loop），缺少项目优化所必需的系统诊断方法 [[21]](#reference)。对话策略设计仅是对话系统功能的一部分，项目开发时 DS developers 需要对 VUI 进行调试，项目部署前需要对用例进行回归，项目上线后需要对指标进行监控，出现异常时需要对错误进行定位，这些都是企业经常用到的控制权。系统诊断的重点是通过会话分析发现对话策略的不合理之处，为项目优化提供数据上的支撑。现代对话系统平台一般有两种诊断的功能，一个是 debugging，一个是 monitoring。Debugging 指的是，为了验证对话交互是否符合业务目标和项目预期，开发者所需要的对话调试功能。通常包括，实时查看一通对话的状态，定位当前交互节点的位置，查看历史 VUI 日志等等。例如图 7 百度 Kitt.ai 支持对会话进行单步调试，方便开发者分析每个 timestamp 的状态。又如图 8 IBM Watson 对话平台，开发者可以点击模拟器中某一轮对话（红框标记的位置），相应的节点即时在左侧的流程图中显示出来。再如图 9 SAP Conversation AI，开发者可通过模拟器查看一通会话的操作日志，方便问题定位。
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p7.png" width="1024">
 
-图 7 百度 Kitt.ai 对话调试
+*图 7 百度 Kitt.ai 对话调试*
 
 
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p8.png" width="640">
 
-图 8 IBM Watson 对话节点定位
+*图 8 IBM Watson 对话节点定位*
 
 
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p9.png" width="480">
 
-图 9 SAP Conversational AI 对话日志
+*图 9 SAP Conversational AI 对话日志*
 
 Monitoring 指的是项目上线后的监控和分析，其意义是通过监控数据指标或 A_B testing，验证对话策略的有效性，持续优化机器人效果。对话策略包括机器人不同的话术、不同的 fallback 方式、不同的 VUI 逻辑、甚至是不同的目标人群等等。Monitor 一般使用业务 KPI 的 summary reports 来监控项目的整体运行情况，以及利用会话日志可视化来宏观调整 VUI 逻辑。对话系统最常用的 KPI 是任务完成率，但任务是否完成并不是那么容易定义。最直接的做法是监控业务数据指标来验证对话目标，例如图 10 Intercom 的每一个对话任务都可以自定义任务指标，对话任务发布后根据这个指标就可以评估对话任务的有效性。Intercom 也支持为同一类客户划分设定不同的对话策略，通过 A_B testing 选择更优的策略。虽然用业务指标来优化策略非常有效，但有时候业务数据并不是即时产生的，甚至有时候对话系统都拿不到敏感的业务数据。这种场景就需要一个间接指标来假设业务目标是否达成，比如通过监控某些节点的完成率来模拟对话目标。可视化整体日志也可以辅助项目分析，例如图 11 Google DialogFlow 的 session flow 功能可将日志的对话流占比可视化出来，方便分析 VUI 有效性。
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p10.png" width="640">
 
-图 10 Intercom 中一个对话任务的监控指标和 A/B testing
+*图 10 Intercom 中一个对话任务的监控指标和 A/B testing*
 
 
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p11.png" width="480">
 
-图 11 DialogFlow session flow
+*图 11 DialogFlow session flow*
 
 
 
@@ -120,12 +123,14 @@ Monitoring 指的是项目上线后的监控和分析，其意义是通过监控
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p12.png" width="1024">
 
-图 12 Rasa X 可视化 Story
+*图 12 Rasa X 可视化 Story*
 
-上面大段的讨论虽然看起来是在聊 data-driven 在实际项目中的不足，其实想强调的是商业对话系统中有很多不可忽略的工作。不论用何种方法，如果这些问题没能有效解决，都将是机器人上线后的重要瓶颈。当然，data-driven dialog manager 的潮流是不可逆的，每年都有大量的研究成果和产品值得我们学习。[下一篇](www.placeholder.com) 我们来聊一聊不同优秀公司给出的多轮对话解决方案。
+上面大段的讨论虽然看起来是在聊 data-driven 在实际项目中的不足，其实想强调的是商业对话系统中有很多不可忽略的工作。不论用何种方法，如果这些问题没能有效解决，都将是机器人上线后的重要瓶颈。当然，data-driven dialog manager 的潮流是不可逆的，每年都有大量的研究成果和产品值得我们学习。[下一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/任务型对话管理的实践/任务型对话管理的产品实践 - 3 业界解决方案一览.md) 我们来聊一聊不同优秀公司给出的多轮对话解决方案。
 
 
-#### Reference
+
+### Reference
+
 [1] J. Schatzmann, B. Thomson, K. Weilhammer, and H. Ye S. Young. Agenda- based user simulation for bootstrapping a POMDP dialogue system. In Proc. HLT/NAACL, Rochester, NY, 2007.
 
 [2] J. D. Williams, K. Asadi, and G. Zweig. Hybrid code networks: practical and efﬁcient end-to-end dialog control with supervised and reinforcement learning. arXiv preprint arXiv:1702.03274, 2017.
