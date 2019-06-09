@@ -5,7 +5,7 @@
 丁南
 更新于 2019-05-28
 
-[上一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/任务型对话管理的实践/任务型对话管理的产品实践 - 1 实现方法的回顾.md) 我们聊了对话管理的 handcrafted 和 data-driven 方法，本文从项目实施的角度讨论一下 data-driven 应用的困难，以及两种方法不同的适用场景。下图深色节点是本文的思维导图。
+[上一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/%E4%BB%BB%E5%8A%A1%E5%9E%8B%E5%AF%B9%E8%AF%9D%E7%AE%A1%E7%90%86%E7%9A%84%E5%AE%9E%E8%B7%B5/%E4%BB%BB%E5%8A%A1%E5%9E%8B%E5%AF%B9%E8%AF%9D%E7%AE%A1%E7%90%86%E7%9A%84%E4%BA%A7%E5%93%81%E5%AE%9E%E8%B7%B5%20-%201%20%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95%E7%9A%84%E5%9B%9E%E9%A1%BE.md) 我们聊了对话管理的 handcrafted 和 data-driven 方法，本文从项目实施的角度讨论一下 data-driven 应用的困难，以及两种方法不同的适用场景。下图深色节点是本文的思维导图。
 
 <img src="http://psqi6yzfs.bkt.clouddn.com/dm-p2-p1.png" width="1024">
 
@@ -125,7 +125,7 @@ Monitoring 指的是项目上线后的监控和分析，其意义是通过监控
 
 *图 12 Rasa X 可视化 Story*
 
-上面大段的讨论虽然看起来是在聊 data-driven 在实际项目中的不足，其实想强调的是商业对话系统中有很多不可忽略的工作。不论用何种方法，如果这些问题没能有效解决，都将是机器人上线后的重要瓶颈。当然，data-driven dialog manager 的潮流是不可逆的，每年都有大量的研究成果和产品值得我们学习。[下一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/任务型对话管理的实践/任务型对话管理的产品实践 - 3 业界解决方案一览.md) 我们来聊一聊不同优秀公司给出的多轮对话解决方案。
+上面大段的讨论虽然看起来是在聊 data-driven 在实际项目中的不足，其实想强调的是商业对话系统中有很多不可忽略的工作。不论用何种方法，如果这些问题没能有效解决，都将是机器人上线后的重要瓶颈。当然，data-driven dialog manager 的潮流是不可逆的，每年都有大量的研究成果和产品值得我们学习。[下一篇](https://github.com/ijinmao/HunterX-Blogs/blob/master/%E4%BB%BB%E5%8A%A1%E5%9E%8B%E5%AF%B9%E8%AF%9D%E7%AE%A1%E7%90%86%E7%9A%84%E5%AE%9E%E8%B7%B5/%E4%BB%BB%E5%8A%A1%E5%9E%8B%E5%AF%B9%E8%AF%9D%E7%AE%A1%E7%90%86%E7%9A%84%E4%BA%A7%E5%93%81%E5%AE%9E%E8%B7%B5%20-%203%20%E4%B8%9A%E7%95%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E4%B8%80%E8%A7%88.md) 我们来聊一聊不同优秀公司给出的多轮对话解决方案。
 
 
 
